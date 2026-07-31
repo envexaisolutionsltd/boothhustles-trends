@@ -1,0 +1,4 @@
+project_id = "boothhustles-trends"
+
+[functions.fetch-trends]
+verify_jwt = false
