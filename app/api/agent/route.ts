@@ -1,8 +1,8 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { NextRequest, NextResponse } from "next/server";
 import { AgentMessage } from "@/lib/types";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const SYSTEM_PROMPT = `You are the research assistant embedded in an e-commerce product trends dashboard. \
 The dashboard lets a user search a keyword and shows Google Trends data pulled via SerpApi: interest over \
@@ -15,8 +15,8 @@ Dashboard context:
 `;
 
 export async function POST(req: NextRequest) {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json({ error: "ANTHROPIC_API_KEY is not configured." }, { status: 500 });
+  if (!process.env.OPENAI_API_KEY) {
+    return NextResponse.json({ error: "OPENAI_API_KEY is not configured." }, { status: 500 });
   }
 
   try {
@@ -29,17 +29,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "messages is required" }, { status: 400 });
     }
 
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-5",
-      max_tokens: 700,
-      system: SYSTEM_PROMPT + context,
-      messages: messages.map((m) => ({ role: m.role, content: m.content })),
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      max_completion_tokens: 700,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT + context },
+        ...messages.map((m) => ({ role: m.role, content: m.content })),
+      ],
     });
 
-    const reply = response.content
-      .filter((block) => block.type === "text")
-      .map((block) => block.text)
-      .join("\n");
+    const reply = response.choices[0]?.message?.content ?? "";
 
     return NextResponse.json({ reply });
   } catch (err) {

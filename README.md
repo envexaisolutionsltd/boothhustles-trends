@@ -9,7 +9,7 @@ charts plus an AI research assistant that sees what's on screen.
 - Next.js (App Router) + TypeScript + Tailwind CSS
 - Supabase (Postgres + Edge Functions) for storage and the SerpApi proxy
 - Recharts for charts
-- Anthropic API for the sliding research assistant
+- OpenAI API for the sliding research assistant
 
 ## Structure
 
@@ -63,7 +63,7 @@ charts plus an AI research assistant that sees what's on screen.
 
 4. **App env vars** — copy `.env.local.example` to `.env.local` and fill in:
    - `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` — from your Supabase project settings
-   - `ANTHROPIC_API_KEY` — powers `/api/agent`
+   - `OPENAI_API_KEY` — powers `/api/agent`
 
 5. **Run it:**
 
@@ -86,4 +86,4 @@ charts plus an AI research assistant that sees what's on screen.
    chart, an interest-by-region bar chart, and related queries/topics.
 4. The sliding assistant (`components/AgentSidebar.tsx`) sends your question plus a
    text summary of the current dashboard state (`lib/agentContext.ts`) to
-   `/api/agent`, which calls the Anthropic API and returns a reply.
+   `/api/agent`, which calls the OpenAI API and returns a reply.
