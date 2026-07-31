@@ -72,12 +72,25 @@ Deno.serve(async (req) => {
 
     const cleanKeyword = keyword.trim();
 
-    const [timeseries, geoMap, relatedQueries, relatedTopics] = await Promise.all([
-      fetchSerpApi(cleanKeyword, "TIMESERIES"),
-      fetchSerpApi(cleanKeyword, "GEO_MAP"),
-      fetchSerpApi(cleanKeyword, "RELATED_QUERIES"),
-      fetchSerpApi(cleanKeyword, "RELATED_TOPICS"),
-    ]);
+    // TIMESERIES is the core signal the verdict is built on, so a failure there
+    // fails the whole request. The other three are supporting data — if one of
+    // them has a hiccup, degrade to empty rather than losing the whole search.
+    const [timeseriesResult, geoMapResult, relatedQueriesResult, relatedTopicsResult] =
+      await Promise.allSettled([
+        fetchSerpApi(cleanKeyword, "TIMESERIES"),
+        fetchSerpApi(cleanKeyword, "GEO_MAP"),
+        fetchSerpApi(cleanKeyword, "RELATED_QUERIES"),
+        fetchSerpApi(cleanKeyword, "RELATED_TOPICS"),
+      ]);
+
+    if (timeseriesResult.status === "rejected") {
+      throw new Error(`Could not load interest-over-time data: ${timeseriesResult.reason}`);
+    }
+
+    const timeseries = timeseriesResult.value;
+    const geoMap = geoMapResult.status === "fulfilled" ? geoMapResult.value : {};
+    const relatedQueries = relatedQueriesResult.status === "fulfilled" ? relatedQueriesResult.value : {};
+    const relatedTopics = relatedTopicsResult.status === "fulfilled" ? relatedTopicsResult.value : {};
 
     const interestOverTime = (timeseries.interest_over_time?.timeline_data ?? []).map(
       (point: SerpApiTimelinePoint) => ({

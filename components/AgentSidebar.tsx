@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { AgentMessage, SearchHistoryItem, TrendRecord, WatchlistItem } from "@/lib/types";
 import { buildDashboardContext } from "@/lib/agentContext";
 import { VerdictResult } from "@/lib/verdict";
@@ -26,6 +26,11 @@ export function AgentSidebar({
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
+  }, [messages, sending]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -84,7 +89,7 @@ export function AgentSidebar({
           </p>
         </div>
 
-        <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
+        <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
           {messages.length === 0 && (
             <p className="text-sm text-ink-muted">
               Ask about {trend ? `"${trend.keyword}"` : "an item"} — whether it&apos;s worth buying, what

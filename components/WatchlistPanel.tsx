@@ -95,7 +95,7 @@ function WatchlistRow({
           >
             {STATUS_OPTIONS.map((s) => (
               <option key={s} value={s}>
-                {s}
+                {s.charAt(0).toUpperCase() + s.slice(1)}
               </option>
             ))}
           </select>

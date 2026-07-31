@@ -52,7 +52,7 @@ export function useTrendSearch() {
       const { data, error: dbError } = await supabase
         .from("trends")
         .select("*")
-        .eq("keyword", keyword)
+        .eq("keyword_slug", keyword.trim().toLowerCase())
         .single();
       if (dbError) throw dbError;
       setTrend(data as TrendRecord);

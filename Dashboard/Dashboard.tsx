@@ -24,6 +24,7 @@ export function Dashboard() {
   const watchlist = useWatchlist();
   const [agentOpen, setAgentOpen] = useState(false);
   const [view, setView] = useState<View>("research");
+  const [addingToWatchlist, setAddingToWatchlist] = useState(false);
 
   const stats = trend ? deriveStats(trend) : null;
   const verdictResult = trend && stats ? computeVerdict(trend, stats) : null;
@@ -39,6 +40,17 @@ export function Dashboard() {
   function goToResearch(keyword: string) {
     setView("research");
     loadFromHistory(keyword);
+  }
+
+  async function handleAddToWatchlist() {
+    if (!trend || !verdictResult || addingToWatchlist || currentWatchlistItem) return;
+    setAddingToWatchlist(true);
+    await watchlist.addItem({
+      keyword: trend.keyword,
+      verdict: verdictResult.verdict,
+      verdictScore: verdictResult.score,
+    });
+    setAddingToWatchlist(false);
   }
 
   return (
@@ -93,19 +105,23 @@ export function Dashboard() {
                       <VerdictBadge result={verdictResult} />
                     </div>
                     <button
-                      onClick={() =>
-                        watchlist.addItem({
-                          keyword: trend.keyword,
-                          verdict: verdictResult.verdict,
-                          verdictScore: verdictResult.score,
-                        })
-                      }
-                      disabled={!!currentWatchlistItem}
+                      onClick={handleAddToWatchlist}
+                      disabled={!!currentWatchlistItem || addingToWatchlist}
                       className="shrink-0 rounded-lg border border-hairline bg-surface px-4 py-2 text-sm font-semibold text-ink disabled:opacity-50 sm:self-start"
                     >
-                      {currentWatchlistItem ? "In watchlist" : "+ Add to watchlist"}
+                      {currentWatchlistItem
+                        ? "In watchlist"
+                        : addingToWatchlist
+                          ? "Adding…"
+                          : "+ Add to watchlist"}
                     </button>
                   </div>
+
+                  {watchlist.error && (
+                    <div className="rounded-lg border border-critical/30 bg-critical/10 px-4 py-3 text-sm text-critical">
+                      {watchlist.error}
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     <StatCard label="Current interest" value={stats.current} />
@@ -165,14 +181,21 @@ export function Dashboard() {
           )}
 
           {view === "watchlist" && (
-            <WatchlistPanel
-              items={watchlist.items}
-              loading={watchlist.loading}
-              onSelect={goToResearch}
-              onUpdateStatus={watchlist.updateStatus}
-              onUpdateDetails={watchlist.updateDetails}
-              onRemove={watchlist.removeItem}
-            />
+            <>
+              {watchlist.error && (
+                <div className="rounded-lg border border-critical/30 bg-critical/10 px-4 py-3 text-sm text-critical">
+                  {watchlist.error}
+                </div>
+              )}
+              <WatchlistPanel
+                items={watchlist.items}
+                loading={watchlist.loading}
+                onSelect={goToResearch}
+                onUpdateStatus={watchlist.updateStatus}
+                onUpdateDetails={watchlist.updateDetails}
+                onRemove={watchlist.removeItem}
+              />
+            </>
           )}
         </div>
       </div>

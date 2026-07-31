@@ -7,14 +7,20 @@ import { WatchlistItem, WatchlistStatus } from "@/lib/types";
 export function useWatchlist() {
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase
+    const { data, error: fetchError } = await supabase
       .from("watchlist")
       .select("*")
       .order("created_at", { ascending: false });
-    if (data) setItems(data as WatchlistItem[]);
+    if (fetchError) {
+      setError(fetchError.message);
+    } else if (data) {
+      setItems(data as WatchlistItem[]);
+      setError(null);
+    }
     setLoading(false);
   }, []);
 
@@ -25,42 +31,53 @@ export function useWatchlist() {
 
   const addItem = useCallback(
     async (input: { keyword: string; verdict: string; verdictScore: number }) => {
-      await supabase.from("watchlist").insert({
+      const { error: insertError } = await supabase.from("watchlist").insert({
         keyword: input.keyword,
         verdict: input.verdict,
         verdict_score: input.verdictScore,
       });
-      refresh();
+      if (insertError) {
+        setError(insertError.message);
+        return false;
+      }
+      await refresh();
+      return true;
     },
     [refresh],
   );
 
   const updateStatus = useCallback(
     async (id: string, status: WatchlistStatus) => {
-      await supabase.from("watchlist").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
-      refresh();
+      const { error: updateError } = await supabase
+        .from("watchlist")
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq("id", id);
+      if (updateError) setError(updateError.message);
+      await refresh();
     },
     [refresh],
   );
 
   const updateDetails = useCallback(
     async (id: string, cost: number | null, notes: string | null) => {
-      await supabase
+      const { error: updateError } = await supabase
         .from("watchlist")
         .update({ cost, notes, updated_at: new Date().toISOString() })
         .eq("id", id);
-      refresh();
+      if (updateError) setError(updateError.message);
+      await refresh();
     },
     [refresh],
   );
 
   const removeItem = useCallback(
     async (id: string) => {
-      await supabase.from("watchlist").delete().eq("id", id);
-      refresh();
+      const { error: deleteError } = await supabase.from("watchlist").delete().eq("id", id);
+      if (deleteError) setError(deleteError.message);
+      await refresh();
     },
     [refresh],
   );
 
-  return { items, loading, addItem, updateStatus, updateDetails, removeItem };
+  return { items, loading, error, addItem, updateStatus, updateDetails, removeItem };
 }
