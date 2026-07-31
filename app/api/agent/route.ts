@@ -2,8 +2,6 @@ import OpenAI from "openai";
 import { NextRequest, NextResponse } from "next/server";
 import { AgentMessage } from "@/lib/types";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 const SYSTEM_PROMPT = `You are a resale/flipping advisor embedded in "Resell Radar", a dashboard a reseller \
 uses to decide whether an item is worth buying to flip. The dashboard searches Google Trends data via SerpApi \
 (interest over time, interest by region, related queries/topics) and computes a rules-based BUY/WATCH/SKIP \
@@ -38,6 +36,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "messages is required" }, { status: 400 });
     }
 
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       max_completion_tokens: 700,
