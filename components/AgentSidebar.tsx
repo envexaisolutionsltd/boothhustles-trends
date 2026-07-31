@@ -1,17 +1,27 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { AgentMessage, SearchHistoryItem, TrendRecord } from "@/lib/types";
+import { AgentMessage, SearchHistoryItem, TrendRecord, WatchlistItem } from "@/lib/types";
 import { buildDashboardContext } from "@/lib/agentContext";
+import { VerdictResult } from "@/lib/verdict";
 
 interface AgentSidebarProps {
   isOpen: boolean;
   onToggle: () => void;
   trend: TrendRecord | null;
   history: SearchHistoryItem[];
+  verdict: VerdictResult | null;
+  watchlistItem: WatchlistItem | null;
 }
 
-export function AgentSidebar({ isOpen, onToggle, trend, history }: AgentSidebarProps) {
+export function AgentSidebar({
+  isOpen,
+  onToggle,
+  trend,
+  history,
+  verdict,
+  watchlistItem,
+}: AgentSidebarProps) {
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -34,7 +44,7 @@ export function AgentSidebar({ isOpen, onToggle, trend, history }: AgentSidebarP
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: nextMessages,
-          context: buildDashboardContext(trend, history),
+          context: buildDashboardContext(trend, history, verdict, watchlistItem),
         }),
       });
       const data = await res.json();
@@ -68,7 +78,7 @@ export function AgentSidebar({ isOpen, onToggle, trend, history }: AgentSidebarP
         }
       >
         <div className="border-b border-hairline px-4 py-4">
-          <h2 className="text-sm font-semibold text-ink">Research assistant</h2>
+          <h2 className="text-sm font-semibold text-ink">Resell advisor</h2>
           <p className="mt-0.5 text-xs text-ink-muted">
             Knows what&apos;s on your dashboard right now.
           </p>
@@ -77,8 +87,8 @@ export function AgentSidebar({ isOpen, onToggle, trend, history }: AgentSidebarP
         <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
           {messages.length === 0 && (
             <p className="text-sm text-ink-muted">
-              Ask about {trend ? `"${trend.keyword}"` : "trend data"} — opportunities, what the numbers
-              mean, or what to search next.
+              Ask about {trend ? `"${trend.keyword}"` : "an item"} — whether it&apos;s worth buying, what
+              the verdict means, or what to check next.
             </p>
           )}
           {messages.map((m, i) => (
