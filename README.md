@@ -65,30 +65,30 @@ that it isn't pulling real marketplace comps.
 
 ## Setup
 
-1. **Supabase project** — create one at supabase.com, then apply the schema:
+1. **Supabase project** — create one at supabase.com, then apply the schema: ✅ done
 
    ```bash
    supabase link --project-ref your-project-ref
    supabase db push
    ```
 
-2. **Edge function secrets** (SerpApi key, not the Next.js env):
+2. **Edge function secrets** (SerpApi key, not the Next.js env): ❌ not done
 
    ```bash
    supabase secrets set SERPAPI_KEY=your-serpapi-key
    ```
 
-3. **Deploy the edge function:**
+3. **Deploy the edge function:** ❌ not done
 
    ```bash
    supabase functions deploy fetch-trends
    ```
 
-4. **App env vars** — copy `.env.local.example` to `.env` (or `.env.local`) and fill in:
-   - `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` — from your Supabase project settings
-   - `OPENAI_API_KEY` — powers `/api/agent`
+4. **App env vars** — copy `.env.local.example` to `.env` (or `.env.local`) and fill in: ✅ done
+   - `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` — from your Supabase project settings ✅ done
+   - `OPENAI_API_KEY` — powers `/api/agent` ✅ done
 
-5. **Run it:**
+5. **Run it:** ✅ done
 
    ```bash
    npm install
