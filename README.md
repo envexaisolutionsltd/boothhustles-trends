@@ -84,9 +84,9 @@ that it isn't pulling real marketplace comps.
    supabase functions deploy fetch-trends
    ```
 
-4. **App env vars** — copy `.env.local.example` to `.env` (or `.env.local`) and fill in: 🟡 partial
+4. **App env vars** — copy `.env.local.example` to `.env` (or `.env.local`) and fill in: ✅ done
    - `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` — from your Supabase project settings ✅ done
-   - `OPENAI_API_KEY` — powers `/api/agent` ❌ not done
+   - `OPENAI_API_KEY` — powers `/api/agent` ✅ done
 
 5. **Run it:** ✅ done
 
