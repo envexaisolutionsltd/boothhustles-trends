@@ -103,14 +103,21 @@ Deno.serve(async (req) => {
       }),
     );
 
-    const interestByRegion = (geoMap.interest_by_region ?? [])
-      .map((r: SerpApiRegionPoint) => ({
+    const rawRegions: SerpApiRegionPoint[] = geoMap.interest_by_region ?? [];
+
+    const interestByRegion = rawRegions
+      .map((r) => ({
         location: r.location,
         value: r.extracted_value ?? 0,
       }))
       .filter((r: { value: number }) => r.value > 0)
       .sort((a: { value: number }, b: { value: number }) => b.value - a.value)
       .slice(0, 15);
+
+    // Captured separately from the top-15 list above so it's available even
+    // when the UK isn't among a keyword's top global markets.
+    const ukInterest =
+      rawRegions.find((r) => r.location?.toLowerCase() === "united kingdom")?.extracted_value ?? null;
 
     const mapRelatedQuery = (q: SerpApiRelatedQuery) => ({
       query: q.query,
@@ -144,6 +151,7 @@ Deno.serve(async (req) => {
           keyword: cleanKeyword,
           interest_over_time: interestOverTime,
           interest_by_region: interestByRegion,
+          uk_interest: ukInterest,
           related_queries: relatedQueriesPayload,
           related_topics: relatedTopicsPayload,
           created_at: new Date().toISOString(),

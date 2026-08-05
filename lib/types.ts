@@ -38,6 +38,7 @@ export interface TrendRecord {
   keyword: string;
   interest_over_time: TimelinePoint[];
   interest_by_region: RegionPoint[];
+  uk_interest: number | null;
   related_queries: RelatedQueries;
   related_topics: RelatedTopics;
   created_at: string;

@@ -5,18 +5,21 @@ import { SearchBar } from "@/components/SearchBar";
 import { RecentSearches } from "@/components/RecentSearches";
 import { StatCard } from "@/components/StatCard";
 import { ChartCard } from "@/components/ChartCard";
+import { UkVerdictBadge } from "@/components/UkVerdictBadge";
 import { InterestOverTimeChart } from "@/components/charts/InterestOverTimeChart";
 import { InterestByRegionChart } from "@/components/charts/InterestByRegionChart";
 import { RelatedList } from "@/components/charts/RelatedList";
 import { AgentSidebar } from "@/components/AgentSidebar";
 import { useTrendSearch } from "./useTrendSearch";
 import { deriveStats } from "@/lib/deriveStats";
+import { computeUkVerdict } from "@/lib/ukVerdict";
 import { formatDateTime } from "@/lib/format";
 
 export function Dashboard() {
   const { trend, history, loading, error, search, loadFromHistory } = useTrendSearch();
   const [agentOpen, setAgentOpen] = useState(false);
   const stats = trend ? deriveStats(trend) : null;
+  const ukVerdict = trend && stats ? computeUkVerdict(trend.uk_interest, stats) : null;
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -45,7 +48,7 @@ export function Dashboard() {
             </div>
           )}
 
-          {trend && stats && (
+          {trend && stats && ukVerdict && (
             <>
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-ink">{trend.keyword}</h2>
@@ -53,6 +56,8 @@ export function Dashboard() {
                   Updated {formatDateTime(trend.created_at)}
                 </span>
               </div>
+
+              <UkVerdictBadge result={ukVerdict} ukInterest={trend.uk_interest} />
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
                 <StatCard label="Peak interest" value={stats.peak?.value ?? null} hint="out of 100" />
