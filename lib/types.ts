@@ -41,6 +41,10 @@ export interface TrendRecord {
   uk_interest: number | null;
   related_queries: RelatedQueries;
   related_topics: RelatedTopics;
+  ebay_listing_count: number | null;
+  ebay_avg_price: number | null;
+  ebay_min_price: number | null;
+  ebay_max_price: number | null;
   created_at: string;
 }
 

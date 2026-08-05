@@ -7,6 +7,7 @@ import { StatCard } from "@/components/StatCard";
 import { ChartCard } from "@/components/ChartCard";
 import { UkVerdictBadge } from "@/components/UkVerdictBadge";
 import { RoiInputs } from "@/components/RoiInputs";
+import { EbayListingsCard } from "@/components/EbayListingsCard";
 import { InterestOverTimeChart } from "@/components/charts/InterestOverTimeChart";
 import { InterestByRegionChart } from "@/components/charts/InterestByRegionChart";
 import { RelatedList } from "@/components/charts/RelatedList";
@@ -44,7 +45,8 @@ export function Dashboard() {
           <header>
             <h1 className="text-2xl font-semibold text-ink">Product Trends</h1>
             <p className="mt-1 text-sm text-ink-secondary">
-              Search a keyword to pull live Google Trends data for your e-com research.
+              Search a keyword to pull live Google Trends demand data and eBay UK listing data for your
+              e-com research.
             </p>
           </header>
 
@@ -82,6 +84,8 @@ export function Dashboard() {
               />
 
               <UkVerdictBadge result={ukVerdict} ukInterest={trend.uk_interest} />
+
+              <EbayListingsCard trend={trend} />
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
                 <StatCard label="Peak interest" value={stats.peak?.value ?? null} hint="out of 100" />

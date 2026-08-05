@@ -13,6 +13,8 @@ const corsHeaders = {
 const SERPAPI_KEY = Deno.env.get("SERPAPI_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const EBAY_CLIENT_ID = Deno.env.get("EBAY_CLIENT_ID");
+const EBAY_CLIENT_SECRET = Deno.env.get("EBAY_CLIENT_SECRET");
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -58,6 +60,87 @@ async function fetchSerpApi(keyword: string, dataType: string) {
   return res.json();
 }
 
+interface EbayItemSummary {
+  price?: { value?: string; currency?: string };
+}
+
+interface EbaySearchResponse {
+  total?: number;
+  itemSummaries?: EbayItemSummary[];
+}
+
+interface EbayListingsSummary {
+  count: number;
+  avgPrice: number | null;
+  minPrice: number | null;
+  maxPrice: number | null;
+}
+
+// eBay's client-credentials token is valid ~2 hours; cached in module scope
+// so a warm edge function instance doesn't re-authenticate on every search.
+let cachedEbayToken: { token: string; expiresAt: number } | null = null;
+
+async function getEbayToken(): Promise<string> {
+  if (cachedEbayToken && cachedEbayToken.expiresAt > Date.now()) {
+    return cachedEbayToken.token;
+  }
+
+  const credentials = btoa(`${EBAY_CLIENT_ID}:${EBAY_CLIENT_SECRET}`);
+  const res = await fetch("https://api.ebay.com/identity/v1/oauth2/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${credentials}`,
+    },
+    body: "grant_type=client_credentials&scope=https://api.ebay.com/oauth/api_scope",
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!res.ok) {
+    throw new Error(`eBay auth failed: ${res.status}`);
+  }
+  const data = await res.json();
+  cachedEbayToken = {
+    token: data.access_token,
+    // Refresh a couple minutes early to avoid using an about-to-expire token.
+    expiresAt: Date.now() + (data.expires_in - 120) * 1000,
+  };
+  return cachedEbayToken.token;
+}
+
+async function fetchEbayListings(keyword: string): Promise<EbayListingsSummary> {
+  if (!EBAY_CLIENT_ID || !EBAY_CLIENT_SECRET) {
+    throw new Error("eBay API credentials are not configured.");
+  }
+
+  const token = await getEbayToken();
+  const url = new URL("https://api.ebay.com/buy/browse/v1/item_summary/search");
+  url.searchParams.set("q", keyword);
+  url.searchParams.set("limit", "50");
+
+  const res = await fetch(url.toString(), {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "X-EBAY-C-MARKETPLACE-ID": "EBAY_GB",
+    },
+    signal: AbortSignal.timeout(20_000),
+  });
+  if (!res.ok) {
+    throw new Error(`eBay search failed: ${res.status}`);
+  }
+
+  const data: EbaySearchResponse = await res.json();
+  const prices = (data.itemSummaries ?? [])
+    .map((item) => Number(item.price?.value))
+    .filter((value) => Number.isFinite(value));
+
+  return {
+    count: data.total ?? 0,
+    avgPrice: prices.length > 0 ? prices.reduce((sum, p) => sum + p, 0) / prices.length : null,
+    minPrice: prices.length > 0 ? Math.min(...prices) : null,
+    maxPrice: prices.length > 0 ? Math.max(...prices) : null,
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -75,16 +158,18 @@ Deno.serve(async (req) => {
     const cleanKeyword = keyword.trim();
 
     // TIMESERIES is the core chart data, so a failure there fails the whole
-    // request. The other three are supporting data — if one of them has a
+    // request. Everything else is supporting data — if one of them has a
     // hiccup, degrade to empty rather than losing the whole search.
     // GEO_MAP_0 (country-level) is used instead of GEO_MAP (sub-region level,
-    // which needs an extra `region` param and 400s without one).
-    const [timeseriesResult, geoMapResult, relatedQueriesResult, relatedTopicsResult] =
+    // which needs an extra `region` param and 400s without one). eBay is
+    // skipped entirely (not even attempted) if credentials aren't set yet.
+    const [timeseriesResult, geoMapResult, relatedQueriesResult, relatedTopicsResult, ebayResult] =
       await Promise.allSettled([
         fetchSerpApi(cleanKeyword, "TIMESERIES"),
         fetchSerpApi(cleanKeyword, "GEO_MAP_0"),
         fetchSerpApi(cleanKeyword, "RELATED_QUERIES"),
         fetchSerpApi(cleanKeyword, "RELATED_TOPICS"),
+        fetchEbayListings(cleanKeyword),
       ]);
 
     if (timeseriesResult.status === "rejected") {
@@ -95,6 +180,7 @@ Deno.serve(async (req) => {
     const geoMap = geoMapResult.status === "fulfilled" ? geoMapResult.value : {};
     const relatedQueries = relatedQueriesResult.status === "fulfilled" ? relatedQueriesResult.value : {};
     const relatedTopics = relatedTopicsResult.status === "fulfilled" ? relatedTopicsResult.value : {};
+    const ebayListings = ebayResult.status === "fulfilled" ? ebayResult.value : null;
 
     const interestOverTime = (timeseries.interest_over_time?.timeline_data ?? []).map(
       (point: SerpApiTimelinePoint) => ({
@@ -154,6 +240,10 @@ Deno.serve(async (req) => {
           uk_interest: ukInterest,
           related_queries: relatedQueriesPayload,
           related_topics: relatedTopicsPayload,
+          ebay_listing_count: ebayListings?.count ?? null,
+          ebay_avg_price: ebayListings?.avgPrice ?? null,
+          ebay_min_price: ebayListings?.minPrice ?? null,
+          ebay_max_price: ebayListings?.maxPrice ?? null,
           created_at: new Date().toISOString(),
         },
         { onConflict: "keyword_slug" },
