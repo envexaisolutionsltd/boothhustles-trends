@@ -17,8 +17,15 @@ const RISING_THRESHOLD = 15;
  * trending" as a gate, not an additive score, so a sharp decline can't be
  * offset by raw popularity into a false SELL. No price data involved.
  */
-export function computeUkVerdict(ukInterest: number | null, stats: DashboardStats): UkVerdictResult {
-  if (ukInterest === null) {
+export function computeUkVerdict(
+  ukInterest: number | null | undefined,
+  stats: DashboardStats,
+): UkVerdictResult {
+  // Treat anything that isn't a real, finite number as "no data" — the DB
+  // value can arrive as null, undefined (column missing from a stale
+  // response), or a non-numeric string depending on the client/schema
+  // state, and none of those should ever reach Math.round() as NaN.
+  if (typeof ukInterest !== "number" || !Number.isFinite(ukInterest)) {
     return {
       verdict: "skip",
       reasons: [

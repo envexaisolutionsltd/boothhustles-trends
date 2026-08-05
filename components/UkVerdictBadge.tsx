@@ -10,9 +10,10 @@ export function UkVerdictBadge({
   ukInterest,
 }: {
   result: UkVerdictResult;
-  ukInterest: number | null;
+  ukInterest: number | null | undefined;
 }) {
   const copy = COPY[result.verdict];
+  const hasUkData = typeof ukInterest === "number" && Number.isFinite(ukInterest);
 
   return (
     <div
@@ -25,7 +26,7 @@ export function UkVerdictBadge({
           <span className="text-sm font-semibold text-ink">{copy.label}</span>
         </div>
         <span className="text-xs text-ink-muted">
-          UK interest: {ukInterest !== null ? `${Math.round(ukInterest)}/100` : "no data"}
+          UK interest: {hasUkData ? `${Math.round(ukInterest)}/100` : "no data"}
         </span>
       </div>
       <ul className="mt-3 space-y-1 text-sm text-ink-secondary">
