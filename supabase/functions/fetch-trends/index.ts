@@ -75,10 +75,12 @@ Deno.serve(async (req) => {
     // TIMESERIES is the core chart data, so a failure there fails the whole
     // request. The other three are supporting data — if one of them has a
     // hiccup, degrade to empty rather than losing the whole search.
+    // GEO_MAP_0 (country-level) is used instead of GEO_MAP (sub-region level,
+    // which needs an extra `region` param and 400s without one).
     const [timeseriesResult, geoMapResult, relatedQueriesResult, relatedTopicsResult] =
       await Promise.allSettled([
         fetchSerpApi(cleanKeyword, "TIMESERIES"),
-        fetchSerpApi(cleanKeyword, "GEO_MAP"),
+        fetchSerpApi(cleanKeyword, "GEO_MAP_0"),
         fetchSerpApi(cleanKeyword, "RELATED_QUERIES"),
         fetchSerpApi(cleanKeyword, "RELATED_TOPICS"),
       ]);
