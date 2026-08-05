@@ -29,9 +29,15 @@ export function useTrendSearch() {
       setLoading(true);
       setError(null);
       try {
-        const { data, error: fnError } = await supabase.functions.invoke("fetch-trends", {
-          body: { keyword },
-        });
+        // A stalled edge function invocation would otherwise leave the UI
+        // stuck on "Searching…" forever — bound it client-side too.
+        const timeout = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Search timed out after 30s. Please try again.")), 30_000),
+        );
+        const { data, error: fnError } = await Promise.race([
+          supabase.functions.invoke("fetch-trends", { body: { keyword } }),
+          timeout,
+        ]);
         if (fnError) throw fnError;
         if (data?.error) throw new Error(data.error);
         setTrend(data as TrendRecord);

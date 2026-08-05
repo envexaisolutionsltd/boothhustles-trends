@@ -49,7 +49,9 @@ async function fetchSerpApi(keyword: string, dataType: string) {
   url.searchParams.set("data_type", dataType);
   url.searchParams.set("api_key", SERPAPI_KEY);
 
-  const res = await fetch(url.toString());
+  // A hung SerpApi request would otherwise stall the whole edge function
+  // (and the browser's "Searching…" state) indefinitely.
+  const res = await fetch(url.toString(), { signal: AbortSignal.timeout(20_000) });
   if (!res.ok) {
     throw new Error(`SerpApi ${dataType} request failed: ${res.status}`);
   }
