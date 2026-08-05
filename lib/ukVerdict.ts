@@ -1,5 +1,4 @@
 import { DashboardStats } from "./deriveStats";
-import { ROI_FLIP_THRESHOLD } from "./roi";
 
 export type UkVerdict = "sell" | "skip";
 
@@ -14,17 +13,13 @@ const RISING_THRESHOLD = 15;
 
 /**
  * Rules-based Sell/Skip read for a UK reseller. SELL requires the item to
- * clear every gate that's actually known — popular in the UK, not
- * meaningfully declining, and (if a cost/resale price were entered) at
- * least a 30% ROI — as gates, not an additive score, so no single strong
- * factor can outvote a genuine blocker (e.g. thin margin, or a sharp
- * decline). ROI is only ever a gate when the caller actually supplies it;
- * omitting it just means the read stays demand-only, as before.
+ * clear every gate that's actually known — popular in the UK and not
+ * meaningfully declining — as gates, not an additive score, so no single
+ * strong factor can outvote a genuine blocker (e.g. a sharp decline).
  */
 export function computeUkVerdict(
   ukInterest: number | null | undefined,
   stats: DashboardStats,
-  roiPct?: number | null,
 ): UkVerdictResult {
   const reasons: string[] = [];
 
@@ -57,16 +52,6 @@ export function computeUkVerdict(
     }
   }
 
-  const hasRoi = typeof roiPct === "number" && Number.isFinite(roiPct);
-  const clearsRoi = !hasRoi || roiPct >= ROI_FLIP_THRESHOLD;
-  if (hasRoi) {
-    reasons.push(
-      clearsRoi
-        ? `${roiPct.toFixed(0)}% ROI clears the ${ROI_FLIP_THRESHOLD}% flip bar.`
-        : `Only ${roiPct.toFixed(0)}% ROI — below the ${ROI_FLIP_THRESHOLD}% flip bar.`,
-    );
-  }
-
   const demandOk = hasUkData && isPopular && !isDeclining;
-  return { verdict: demandOk && clearsRoi ? "sell" : "skip", reasons };
+  return { verdict: demandOk ? "sell" : "skip", reasons };
 }

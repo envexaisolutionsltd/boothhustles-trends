@@ -27,7 +27,6 @@ sees what's on screen.
 │   ├── charts/               # InterestOverTimeChart, InterestByRegionChart, RelatedList
 │   ├── AgentSidebar.tsx      # sliding chat panel
 │   ├── UkVerdictBadge.tsx    # Sell/Skip badge + reasons
-│   ├── RoiInputs.tsx         # cost / expected resale price -> live ROI
 │   ├── EbayListingsCard.tsx  # eBay UK active listing count + price range
 │   ├── MarketplaceIndexCard.tsx  # Vinted/Gumtree Google-index estimate
 │   ├── SearchBar.tsx
@@ -39,7 +38,6 @@ sees what's on screen.
 │   ├── types.ts
 │   ├── deriveStats.ts
 │   ├── ukVerdict.ts          # rules-based Sell/Skip scoring
-│   ├── roi.ts                # ROI calculation + 30% flip threshold
 │   ├── agentContext.ts       # summarizes dashboard state for the assistant
 │   └── format.ts
 └── supabase/
@@ -59,10 +57,9 @@ a real blocker):
 
 - **UK demand** — popular in the UK (interest score ≥ 25/100)
 - **Trend** — not meaningfully declining (not down 20%+ recently)
-- **ROI** — 30%+ margin, *only once you've entered a cost and expected resale price*
-  in the "Flip margin" box; leaving those blank keeps the read demand-only
 
-No live pricing data is pulled automatically — ROI is estimated by you.
+Both gates come straight from live SerpApi data — nothing here is manually entered
+or estimated.
 
 ## Setup
 
@@ -125,9 +122,9 @@ No live pricing data is pulled automatically — ROI is estimated by you.
    interest-over-time line chart, an interest-by-region bar chart, and related
    queries/topics.
 4. The sliding assistant (`components/AgentSidebar.tsx`) sends your question plus a
-   text summary of the current dashboard state — including the verdict, ROI, and eBay
-   data (`lib/agentContext.ts`) — to `/api/agent`, which calls the OpenAI API and
-   returns a reply.
+   text summary of the current dashboard state — including the verdict and eBay data
+   (`lib/agentContext.ts`) — to `/api/agent`, which calls the OpenAI API and returns a
+   reply.
 
 ## Notes
 
