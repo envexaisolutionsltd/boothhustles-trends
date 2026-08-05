@@ -60,6 +60,26 @@ async function fetchSerpApi(keyword: string, dataType: string) {
   return res.json();
 }
 
+// Vinted and Gumtree have no public API — this is a legal alternative
+// (not scraping their servers at all): a site-restricted Google search
+// via SerpApi's regular search engine, reading only Google's own public
+// index. It's an approximate "how much indexed content exists" signal,
+// not live listing counts or prices.
+async function fetchGoogleIndexCount(keyword: string, site: string): Promise<number | null> {
+  const url = new URL("https://serpapi.com/search.json");
+  url.searchParams.set("engine", "google");
+  url.searchParams.set("q", `site:${site} ${keyword}`);
+  url.searchParams.set("api_key", SERPAPI_KEY);
+
+  const res = await fetch(url.toString(), { signal: AbortSignal.timeout(15_000) });
+  if (!res.ok) {
+    throw new Error(`Google index search for ${site} failed: ${res.status}`);
+  }
+  const data = await res.json();
+  const total = data.search_information?.total_results;
+  return typeof total === "number" ? total : null;
+}
+
 interface EbayItemSummary {
   price?: { value?: string; currency?: string };
 }
@@ -163,14 +183,23 @@ Deno.serve(async (req) => {
     // GEO_MAP_0 (country-level) is used instead of GEO_MAP (sub-region level,
     // which needs an extra `region` param and 400s without one). eBay is
     // skipped entirely (not even attempted) if credentials aren't set yet.
-    const [timeseriesResult, geoMapResult, relatedQueriesResult, relatedTopicsResult, ebayResult] =
-      await Promise.allSettled([
-        fetchSerpApi(cleanKeyword, "TIMESERIES"),
-        fetchSerpApi(cleanKeyword, "GEO_MAP_0"),
-        fetchSerpApi(cleanKeyword, "RELATED_QUERIES"),
-        fetchSerpApi(cleanKeyword, "RELATED_TOPICS"),
-        fetchEbayListings(cleanKeyword),
-      ]);
+    const [
+      timeseriesResult,
+      geoMapResult,
+      relatedQueriesResult,
+      relatedTopicsResult,
+      ebayResult,
+      vintedIndexResult,
+      gumtreeIndexResult,
+    ] = await Promise.allSettled([
+      fetchSerpApi(cleanKeyword, "TIMESERIES"),
+      fetchSerpApi(cleanKeyword, "GEO_MAP_0"),
+      fetchSerpApi(cleanKeyword, "RELATED_QUERIES"),
+      fetchSerpApi(cleanKeyword, "RELATED_TOPICS"),
+      fetchEbayListings(cleanKeyword),
+      fetchGoogleIndexCount(cleanKeyword, "vinted.co.uk"),
+      fetchGoogleIndexCount(cleanKeyword, "gumtree.com"),
+    ]);
 
     if (timeseriesResult.status === "rejected") {
       throw new Error(`Could not load interest-over-time data: ${timeseriesResult.reason}`);
@@ -181,6 +210,8 @@ Deno.serve(async (req) => {
     const relatedQueries = relatedQueriesResult.status === "fulfilled" ? relatedQueriesResult.value : {};
     const relatedTopics = relatedTopicsResult.status === "fulfilled" ? relatedTopicsResult.value : {};
     const ebayListings = ebayResult.status === "fulfilled" ? ebayResult.value : null;
+    const vintedIndexCount = vintedIndexResult.status === "fulfilled" ? vintedIndexResult.value : null;
+    const gumtreeIndexCount = gumtreeIndexResult.status === "fulfilled" ? gumtreeIndexResult.value : null;
 
     const interestOverTime = (timeseries.interest_over_time?.timeline_data ?? []).map(
       (point: SerpApiTimelinePoint) => ({
@@ -244,6 +275,8 @@ Deno.serve(async (req) => {
           ebay_avg_price: ebayListings?.avgPrice ?? null,
           ebay_min_price: ebayListings?.minPrice ?? null,
           ebay_max_price: ebayListings?.maxPrice ?? null,
+          vinted_index_count: vintedIndexCount,
+          gumtree_index_count: gumtreeIndexCount,
           created_at: new Date().toISOString(),
         },
         { onConflict: "keyword_slug" },

@@ -45,6 +45,8 @@ export interface TrendRecord {
   ebay_avg_price: number | null;
   ebay_min_price: number | null;
   ebay_max_price: number | null;
+  vinted_index_count: number | null;
+  gumtree_index_count: number | null;
   created_at: string;
 }
 

@@ -29,6 +29,7 @@ sees what's on screen.
 │   ├── UkVerdictBadge.tsx    # Sell/Skip badge + reasons
 │   ├── RoiInputs.tsx         # cost / expected resale price -> live ROI
 │   ├── EbayListingsCard.tsx  # eBay UK active listing count + price range
+│   ├── MarketplaceIndexCard.tsx  # Vinted/Gumtree Google-index estimate
 │   ├── SearchBar.tsx
 │   ├── StatCard.tsx
 │   ├── RecentSearches.tsx
@@ -46,7 +47,8 @@ sees what's on screen.
     └── migrations/
         ├── 0001_init.sql              # `trends` table + RLS
         ├── 0002_uk_interest.sql       # uk_interest column
-        └── 0003_ebay_listings.sql     # ebay_* columns
+        ├── 0003_ebay_listings.sql     # ebay_* columns
+        └── 0004_marketplace_index_counts.sql  # vinted_index_count, gumtree_index_count
 ```
 
 ## The Sell/Skip verdict
@@ -83,6 +85,8 @@ No live pricing data is pulled automatically — ROI is estimated by you.
    account (Production keys). If they're not set, eBay listing data is simply skipped —
    Google Trends data still works.
 
+   No extra secret is needed for the Vinted/Gumtree card — it reuses `SERPAPI_KEY`.
+
 3. **Deploy the edge function:**
 
    ```bash
@@ -109,14 +113,17 @@ No live pricing data is pulled automatically — ROI is estimated by you.
 1. The search bar calls `supabase.functions.invoke("fetch-trends", { body: { keyword } })`
    directly from the browser using the anon key.
 2. The edge function calls SerpApi's `google_trends` engine (timeseries, geo map, related
-   queries/topics) and eBay's Browse API (UK marketplace, OAuth2 client-credentials) in
-   parallel, normalizes both, and upserts a row into the `trends` table using the service
-   role key (bypassing RLS — the client can only read). Every sub-request except
+   queries/topics), eBay's Browse API (UK marketplace, OAuth2 client-credentials), and
+   SerpApi's regular `google` search engine with a `site:vinted.co.uk`/`site:gumtree.com`
+   query (`fetchGoogleIndexCount`, reading `search_information.total_results`) in
+   parallel, normalizes everything, and upserts a row into the `trends` table using the
+   service role key (bypassing RLS — the client can only read). Every sub-request except
    TIMESERIES degrades to empty on failure rather than losing the whole search; eBay is
    skipped entirely if its credentials aren't configured.
 3. The dashboard computes the Sell/Skip verdict client-side and renders it alongside
-   stat tiles, the eBay listings card, an interest-over-time line chart, an
-   interest-by-region bar chart, and related queries/topics.
+   stat tiles, the eBay listings card, the Vinted/Gumtree Google-index card, an
+   interest-over-time line chart, an interest-by-region bar chart, and related
+   queries/topics.
 4. The sliding assistant (`components/AgentSidebar.tsx`) sends your question plus a
    text summary of the current dashboard state — including the verdict, ROI, and eBay
    data (`lib/agentContext.ts`) — to `/api/agent`, which calls the OpenAI API and
@@ -124,9 +131,15 @@ No live pricing data is pulled automatically — ROI is estimated by you.
 
 ## Notes
 
-- **Vinted, Facebook Marketplace, and Gumtree are intentionally not integrated** —
-  none of them expose a public API for listings/search data, so pulling from them
-  would mean unofficial scraping: fragile, and against their Terms of Service.
+- **Vinted and Gumtree have no public API**, so instead of scraping (fragile, and
+  against both platforms' Terms of Service) the edge function uses SerpApi's regular
+  Google search with a `site:` filter to get an approximate count of Google-indexed
+  pages matching the keyword on each site (`MarketplaceIndexCard.tsx`). This is a
+  legal, ToS-safe demand proxy — **not** a live listing count or price, so it's kept
+  visually distinct from the real eBay listing data.
+- **Facebook Marketplace has no signal at all** — Meta blocks it from Google's index,
+  so there's no legal way to get even an approximate count without scraping, which
+  this project won't do.
 - There's no auth in this build — it's a single-user tool, and the `trends` table
   uses an open read policy so the anon key can read directly (writes only happen via
   the edge function, using the service role key). If this ever becomes multi-user,

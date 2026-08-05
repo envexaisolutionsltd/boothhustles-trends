@@ -39,11 +39,15 @@ export function buildDashboardContext(
       }`
     : "no eBay data (API not connected or no listings found)";
 
+  const vintedCount = typeof trend.vinted_index_count === "number" ? trend.vinted_index_count : null;
+  const gumtreeCount = typeof trend.gumtree_index_count === "number" ? trend.gumtree_index_count : null;
+
   return [
     `Current keyword: "${trend.keyword}", last updated ${trend.created_at}.`,
     `Interest over time: current=${stats.current ?? "n/a"}, peak=${stats.peak?.value ?? "n/a"} on ${stats.peak?.date ?? "n/a"}, average=${stats.average?.toFixed(1) ?? "n/a"}, trend change=${stats.changePct?.toFixed(1) ?? "n/a"}%.`,
     `UK-specific interest: ${hasUkInterest ? Math.round(trend.uk_interest as number) : "no data"}.${hasRoi ? ` User-entered ROI estimate: ${(roiPct as number).toFixed(0)}% (30%+ is treated as a potential flip).` : " No cost/resale price entered yet."} Computed UK sell/skip read: ${ukVerdict.verdict.toUpperCase()} (${ukVerdict.reasons.join(" ")})`,
     `eBay UK marketplace: ${ebaySummary}.`,
+    `Other marketplaces (approximate Google-indexed page counts, NOT live listings — neither has a public API): Vinted=${vintedCount ?? "n/a"}, Gumtree=${gumtreeCount ?? "n/a"}. No signal available for Facebook Marketplace (blocked from Google's index).`,
     `Top regions by interest: ${topRegions}.`,
     `Top related queries: ${topQueries}.`,
     `Rising related queries: ${risingQueries}.`,
