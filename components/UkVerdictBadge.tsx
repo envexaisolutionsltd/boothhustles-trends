@@ -2,7 +2,7 @@ import { UkVerdictResult } from "@/lib/ukVerdict";
 
 const COPY: Record<UkVerdictResult["verdict"], { label: string; color: string }> = {
   sell: { label: "SELL — worth listing in the UK", color: "var(--good)" },
-  skip: { label: "SKIP — weak UK demand", color: "var(--critical)" },
+  skip: { label: "SKIP — pass on this one", color: "var(--critical)" },
 };
 
 export function UkVerdictBadge({

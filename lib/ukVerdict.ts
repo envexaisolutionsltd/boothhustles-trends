@@ -7,39 +7,44 @@ export interface UkVerdictResult {
   reasons: string[];
 }
 
+const POPULAR_THRESHOLD = 25;
+const DECLINING_THRESHOLD = -20;
+const RISING_THRESHOLD = 15;
+
 /**
- * Rules-based Sell/Skip read for a UK reseller, from UK-specific search
- * interest plus overall demand momentum — no price data involved.
+ * Rules-based Sell/Skip read for a UK reseller: SELL requires the item to
+ * be both popular in the UK and not meaningfully declining — "popular and
+ * trending" as a gate, not an additive score, so a sharp decline can't be
+ * offset by raw popularity into a false SELL. No price data involved.
  */
 export function computeUkVerdict(ukInterest: number | null, stats: DashboardStats): UkVerdictResult {
-  const reasons: string[] = [];
-  let score = 0;
-
   if (ukInterest === null) {
-    score -= 2;
-    reasons.push("No measurable UK search interest for this keyword.");
-  } else if (ukInterest >= 50) {
-    score += 2;
-    reasons.push(`Strong UK demand — interest score of ${Math.round(ukInterest)} out of 100.`);
-  } else if (ukInterest >= 20) {
-    score += 1;
-    reasons.push(`Moderate UK demand — interest score of ${Math.round(ukInterest)}.`);
+    return {
+      verdict: "skip",
+      reasons: [
+        "No measurable UK search interest for this keyword — not enough demand data to justify selling here.",
+      ],
+    };
+  }
+
+  const reasons: string[] = [];
+  const isPopular = ukInterest >= POPULAR_THRESHOLD;
+  const isDeclining = stats.changePct !== null && stats.changePct <= DECLINING_THRESHOLD;
+  const isRising = stats.changePct !== null && stats.changePct >= RISING_THRESHOLD;
+
+  reasons.push(
+    isPopular
+      ? `Popular in the UK — interest score of ${Math.round(ukInterest)} out of 100.`
+      : `Low UK interest — only ${Math.round(ukInterest)} out of 100.`,
+  );
+
+  if (isRising) {
+    reasons.push(`Trending up — demand rose ${stats.changePct!.toFixed(0)}% recently.`);
+  } else if (isDeclining) {
+    reasons.push(`Trending down — demand fell ${Math.abs(stats.changePct!).toFixed(0)}% recently.`);
   } else {
-    score -= 1;
-    reasons.push(`Weak UK demand — interest score of only ${Math.round(ukInterest)}.`);
+    reasons.push("Demand is holding roughly steady.");
   }
 
-  if (stats.changePct !== null) {
-    if (stats.changePct >= 15) {
-      score += 1;
-      reasons.push(`Demand is trending up overall — up ${stats.changePct.toFixed(0)}% recently.`);
-    } else if (stats.changePct <= -15) {
-      score -= 1;
-      reasons.push(`Demand is trending down overall — down ${Math.abs(stats.changePct).toFixed(0)}% recently.`);
-    } else {
-      reasons.push("Overall demand is holding roughly steady.");
-    }
-  }
-
-  return { verdict: score >= 1 ? "sell" : "skip", reasons };
+  return { verdict: isPopular && !isDeclining ? "sell" : "skip", reasons };
 }
