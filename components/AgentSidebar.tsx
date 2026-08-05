@@ -9,9 +9,10 @@ interface AgentSidebarProps {
   onToggle: () => void;
   trend: TrendRecord | null;
   history: SearchHistoryItem[];
+  roiPct: number | null;
 }
 
-export function AgentSidebar({ isOpen, onToggle, trend, history }: AgentSidebarProps) {
+export function AgentSidebar({ isOpen, onToggle, trend, history, roiPct }: AgentSidebarProps) {
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -39,7 +40,7 @@ export function AgentSidebar({ isOpen, onToggle, trend, history }: AgentSidebarP
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: nextMessages,
-          context: buildDashboardContext(trend, history),
+          context: buildDashboardContext(trend, history, roiPct),
         }),
       });
       const data = await res.json();

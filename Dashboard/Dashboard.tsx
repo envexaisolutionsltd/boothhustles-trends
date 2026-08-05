@@ -6,6 +6,7 @@ import { RecentSearches } from "@/components/RecentSearches";
 import { StatCard } from "@/components/StatCard";
 import { ChartCard } from "@/components/ChartCard";
 import { UkVerdictBadge } from "@/components/UkVerdictBadge";
+import { RoiInputs } from "@/components/RoiInputs";
 import { InterestOverTimeChart } from "@/components/charts/InterestOverTimeChart";
 import { InterestByRegionChart } from "@/components/charts/InterestByRegionChart";
 import { RelatedList } from "@/components/charts/RelatedList";
@@ -13,13 +14,28 @@ import { AgentSidebar } from "@/components/AgentSidebar";
 import { useTrendSearch } from "./useTrendSearch";
 import { deriveStats } from "@/lib/deriveStats";
 import { computeUkVerdict } from "@/lib/ukVerdict";
+import { computeRoi } from "@/lib/roi";
 import { formatDateTime } from "@/lib/format";
 
 export function Dashboard() {
   const { trend, history, loading, error, search, loadFromHistory } = useTrendSearch();
   const [agentOpen, setAgentOpen] = useState(false);
+  const [cost, setCost] = useState("");
+  const [resalePrice, setResalePrice] = useState("");
+  const [pricedTrendId, setPricedTrendId] = useState<string | undefined>(undefined);
+
+  // Reset the ROI inputs when the search changes, without an extra
+  // render+effect round trip (React's recommended pattern for "adjust
+  // state when a prop changes").
+  if (trend?.id !== pricedTrendId) {
+    setPricedTrendId(trend?.id);
+    if (cost !== "") setCost("");
+    if (resalePrice !== "") setResalePrice("");
+  }
+
   const stats = trend ? deriveStats(trend) : null;
-  const ukVerdict = trend && stats ? computeUkVerdict(trend.uk_interest, stats) : null;
+  const roiPct = computeRoi(parseFloat(cost), parseFloat(resalePrice));
+  const ukVerdict = trend && stats ? computeUkVerdict(trend.uk_interest, stats, roiPct) : null;
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -56,6 +72,14 @@ export function Dashboard() {
                   Updated {formatDateTime(trend.created_at)}
                 </span>
               </div>
+
+              <RoiInputs
+                cost={cost}
+                resalePrice={resalePrice}
+                roiPct={roiPct}
+                onCostChange={setCost}
+                onResalePriceChange={setResalePrice}
+              />
 
               <UkVerdictBadge result={ukVerdict} ukInterest={trend.uk_interest} />
 
@@ -122,6 +146,7 @@ export function Dashboard() {
         onToggle={() => setAgentOpen((v) => !v)}
         trend={trend}
         history={history}
+        roiPct={roiPct}
       />
     </div>
   );
