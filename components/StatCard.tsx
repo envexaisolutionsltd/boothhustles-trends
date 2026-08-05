@@ -15,7 +15,7 @@ export function StatCard({ label, value, deltaPct, hint }: StatCardProps) {
     <div className="rounded-lg border border-hairline bg-surface p-4">
       <p className="text-xs font-medium text-ink-secondary">{label}</p>
       <div className="mt-1 flex items-baseline gap-2">
-        <span className="text-2xl font-semibold text-ink">{displayValue}</span>
+        <span className="truncate text-2xl font-semibold text-ink">{displayValue}</span>
         {deltaPct !== null && deltaPct !== undefined && !Number.isNaN(deltaPct) && (
           <span className={`text-xs font-medium ${deltaPct >= 0 ? "text-good" : "text-critical"}`}>
             {formatPct(deltaPct)}

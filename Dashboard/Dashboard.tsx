@@ -54,18 +54,19 @@ export function Dashboard() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <StatCard label="Current interest" value={stats.current} />
-                <StatCard
-                  label="Peak interest"
-                  value={stats.peak?.value ?? null}
-                  hint={stats.peak?.date}
-                />
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                <StatCard label="Peak interest" value={stats.peak?.value ?? null} hint="out of 100" />
                 <StatCard label="Average interest" value={stats.average} deltaPct={stats.changePct} />
+                <StatCard label="Current level" value={stats.current} hint="most recent data point" />
                 <StatCard
                   label="Top region"
                   value={stats.topRegion?.location ?? "—"}
-                  hint={stats.topRegion ? `Score ${Math.round(stats.topRegion.value)}` : undefined}
+                  hint={stats.topRegion ? `Score ${Math.round(stats.topRegion.value)}` : "highest interest"}
+                />
+                <StatCard
+                  label="Rising query"
+                  value={stats.topRisingQuery?.query ?? "—"}
+                  hint={stats.topRisingQuery ? stats.topRisingQuery.formattedValue : "no breakout searches"}
                 />
               </div>
 
