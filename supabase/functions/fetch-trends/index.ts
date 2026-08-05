@@ -72,9 +72,9 @@ Deno.serve(async (req) => {
 
     const cleanKeyword = keyword.trim();
 
-    // TIMESERIES is the core signal the verdict is built on, so a failure there
-    // fails the whole request. The other three are supporting data — if one of
-    // them has a hiccup, degrade to empty rather than losing the whole search.
+    // TIMESERIES is the core chart data, so a failure there fails the whole
+    // request. The other three are supporting data — if one of them has a
+    // hiccup, degrade to empty rather than losing the whole search.
     const [timeseriesResult, geoMapResult, relatedQueriesResult, relatedTopicsResult] =
       await Promise.allSettled([
         fetchSerpApi(cleanKeyword, "TIMESERIES"),

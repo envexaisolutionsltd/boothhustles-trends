@@ -1,34 +1,30 @@
-# Resell Radar
+# Product Trends Dashboard
 
-A dashboard for resellers: search an item, pull live Google Trends data via SerpApi
-through a Supabase Edge Function, and get a rules-based **Buy / Watch / Skip** read on
-whether current demand makes it worth buying to flip. Save candidates to a watchlist,
-track cost/notes/status, and ask an AI resale advisor that sees what's on screen.
+An e-com product research dashboard. Type a keyword, pull Google Trends data via
+SerpApi through a Supabase Edge Function, store it in Supabase, and explore it with
+charts plus an AI research assistant that sees what's on screen.
 
 ## Stack
 
 - Next.js (App Router) + TypeScript + Tailwind CSS
 - Supabase (Postgres + Edge Functions) for storage and the SerpApi proxy
 - Recharts for charts
-- OpenAI API for the sliding resell advisor
+- OpenAI API for the sliding research assistant
 
 ## Structure
 
 ```
 ├── app/
-│   ├── api/agent/route.ts   # chat endpoint for the sliding advisor
+│   ├── api/agent/route.ts   # chat endpoint for the sliding assistant
 │   ├── globals.css
 │   ├── layout.tsx
 │   └── page.tsx             # renders Dashboard
 ├── Dashboard/
-│   ├── Dashboard.tsx        # page layout: research tab, watchlist tab, agent
-│   ├── useTrendSearch.ts    # data fetching/state for a trend search
-│   └── useWatchlist.ts      # CRUD for saved watchlist items
+│   ├── Dashboard.tsx        # page layout: search, stats, charts, agent
+│   └── useTrendSearch.ts    # data fetching/state for a trend search
 ├── components/
 │   ├── charts/               # InterestOverTimeChart, InterestByRegionChart, RelatedList
 │   ├── AgentSidebar.tsx      # sliding chat panel
-│   ├── VerdictBadge.tsx      # Buy/Watch/Skip badge + reasons
-│   ├── WatchlistPanel.tsx    # saved items: status, cost, notes
 │   ├── SearchBar.tsx
 │   ├── StatCard.tsx
 │   ├── RecentSearches.tsx
@@ -37,65 +33,48 @@ track cost/notes/status, and ask an AI resale advisor that sees what's on screen
 │   ├── supabaseClient.ts
 │   ├── types.ts
 │   ├── deriveStats.ts
-│   ├── verdict.ts            # rules-based Buy/Watch/Skip scoring
-│   ├── agentContext.ts       # summarizes dashboard state for the advisor
+│   ├── agentContext.ts       # summarizes dashboard state for the assistant
 │   └── format.ts
 └── supabase/
-    ├── functions/fetch-trends/index.ts   # calls SerpApi, upserts into `trends`
-    └── migrations/
-        ├── 0001_init.sql                  # `trends` table + RLS
-        └── 0002_watchlist.sql             # `watchlist` table + RLS
+    ├── functions/fetch-trends/index.ts  # calls SerpApi, upserts into `trends`
+    └── migrations/0001_init.sql          # `trends` table + RLS
 ```
-
-## The Buy/Watch/Skip verdict
-
-`lib/verdict.ts` scores an item purely on demand signals from the trend data — no
-price data involved:
-
-- **Momentum** — is average interest rising or falling recently (± the changePct stat)
-- **Position vs. peak** — is current interest still near its high, or well past it
-- **Breakout** — is a related query/topic currently marked "Breakout" by Google Trends
-- **Overall volume** — is there enough absolute search interest to be worth chasing
-
-The score maps to **BUY** (≥3), **SKIP** (≤‑1), or **WATCH** (in between), each shown
-with the specific reasons behind it. There's no live resale-price/margin data source
-connected — the watchlist has an optional cost field per item, and the AI advisor can
-reason qualitatively about margin from its own knowledge when asked, but it's explicit
-that it isn't pulling real marketplace comps.
 
 ## Setup
 
-1. **Supabase project** — create one at supabase.com, then apply the schema: ✅ done
+1. **Supabase project** — create one at supabase.com, then apply the schema:
 
    ```bash
    supabase link --project-ref your-project-ref
    supabase db push
    ```
 
-2. **Edge function secrets** (SerpApi key, not the Next.js env): ❌ not done
+2. **Edge function secrets** (SerpApi key, not the Next.js env):
 
    ```bash
    supabase secrets set SERPAPI_KEY=your-serpapi-key
    ```
 
-3. **Deploy the edge function:** ❌ not done
+3. **Deploy the edge function:**
 
    ```bash
    supabase functions deploy fetch-trends
    ```
 
-4. **App env vars** — copy `.env.local.example` to `.env` (or `.env.local`) and fill in: ✅ done
-   - `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` — from your Supabase project settings ✅ done
-   - `OPENAI_API_KEY` — powers `/api/agent` ✅ done
+4. **App env vars** — copy `.env.local.example` to `.env` (or `.env.local`) and fill in:
+   - `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` — from your Supabase project settings
+   - `OPENAI_API_KEY` — powers `/api/agent`
 
-5. **Run it:** ✅ done
+5. **Run it:**
 
    ```bash
    npm install
    npm run dev
    ```
 
-   Open [http://localhost:3000](http://localhost:3000).
+   Open [http://localhost:3000](http://localhost:3000). (In WebContainer-based environments like
+   bolt.new, use `npm run dev:webpack` instead — Turbopack needs native bindings those
+   environments can't provide.)
 
 ## How it works
 
@@ -105,20 +84,19 @@ that it isn't pulling real marketplace comps.
    related queries, related topics), normalizes the response, and upserts a row into
    the `trends` table using the service role key (bypassing RLS — the client can only
    read).
-3. The dashboard computes a Buy/Watch/Skip verdict client-side from that data and
-   renders it alongside stat tiles, an interest-over-time line chart, an
-   interest-by-region bar chart, and related queries/topics.
-4. "+ Add to watchlist" saves the keyword and verdict to the `watchlist` table. The
-   Watchlist tab lets you edit status (watching/bought/passed), cost, and notes inline,
-   and jump back into the research view for any saved item.
-5. The sliding advisor (`components/AgentSidebar.tsx`) sends your question plus a text
-   summary of the current dashboard state — including the verdict and any watchlist
-   entry — (`lib/agentContext.ts`) to `/api/agent`, which calls the OpenAI API and
-   returns a reply.
+3. The dashboard renders the returned row: stat tiles, an interest-over-time line
+   chart, an interest-by-region bar chart, and related queries/topics.
+4. The sliding assistant (`components/AgentSidebar.tsx`) sends your question plus a
+   text summary of the current dashboard state (`lib/agentContext.ts`) to
+   `/api/agent`, which calls the OpenAI API and returns a reply.
 
 ## Notes
 
-- There's no auth in this build — it's a single-user tool, and the `watchlist` and
-  `trends` tables use open RLS policies so the anon key can read/write directly. If
-  this ever becomes multi-user, add a `user_id` column and scope policies to
-  `auth.uid()`.
+- There's no auth in this build — it's a single-user tool, and the `trends` table
+  uses an open read policy so the anon key can read directly (writes only happen via
+  the edge function, using the service role key). If this ever becomes multi-user,
+  add a `user_id` column and scope policies to `auth.uid()`.
+- `lib/supabaseClient.ts` falls back to placeholder values instead of throwing if the
+  Supabase env vars aren't set, so a misconfigured deployment shows a normal, visible
+  error instead of a blank crashed page. `app/error.tsx` and `app/global-error.tsx`
+  add the same safety net for any other unexpected render error.

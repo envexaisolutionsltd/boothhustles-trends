@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Resell Radar",
-  description: "Buy/watch/skip flip decisions powered by Google Trends via SerpApi.",
+  title: "Product Trends Dashboard",
+  description: "E-com product research powered by Google Trends via SerpApi.",
 };
 
 export default function RootLayout({
