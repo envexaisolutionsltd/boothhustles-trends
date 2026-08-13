@@ -1,4 +1,27 @@
-# Product Trends Dashboard
+# Lewis Transport Services website + Product Trends Dashboard
+
+This repository serves two apps from one Next.js deployment.
+
+## 1. Lewis Transport Services (`/`)
+
+Marketing site for a heavy haulage and abnormal load specialist based in
+Doveridge, Derbyshire. Routes: `/`, `/services`, `/fleet`, `/about`,
+`/contact`, `/quote` — all statically prerendered.
+
+- **All copy, contact details and fleet figures live in `lib/lts/content.ts`.**
+  Entries are tagged `[live]` (taken from the existing lewistransport.co.uk
+  site) or `[confirm]` (needs client sign-off before go-live — street address,
+  postcode, opening hours and the accreditation wording).
+- Quote requests post to the `submitQuote` Server Action
+  (`app/actions/quote.ts`). Validation is server-side with progressive
+  enhancement; delivery goes by email when `RESEND_API_KEY` is set and falls
+  back to the server log otherwise. See `.env.local.example`.
+- SEO: per-route metadata, `app/sitemap.ts`, `app/robots.ts`, generated OG
+  image, and `MovingCompany` JSON-LD in `app/(site)/layout.tsx`.
+- Brand tokens (`--lts-*`) are scoped under `.lts-site` in `app/globals.css`
+  so the dashboard's dark theme is unaffected.
+
+## 2. Product Trends Dashboard (`/dashboard`)
 
 An e-com product research dashboard for UK reselling. Type a keyword, pull Google
 Trends demand data (via SerpApi) and live eBay UK listing data through Supabase Edge
@@ -18,8 +41,11 @@ sees what's on screen.
 ├── app/
 │   ├── api/agent/route.ts   # chat endpoint for the sliding assistant
 │   ├── globals.css
-│   ├── layout.tsx
-│   └── page.tsx             # renders Dashboard
+│   ├── layout.tsx           # root shell: fonts, viewport
+│   ├── (site)/              # Lewis Transport Services marketing site
+│   ├── actions/quote.ts     # quote request Server Action
+│   ├── robots.ts, sitemap.ts
+│   └── dashboard/page.tsx   # renders Dashboard
 ├── Dashboard/
 │   ├── Dashboard.tsx        # page layout: search, verdict, stats, charts, agent
 │   └── useTrendSearch.ts    # data fetching/state for a trend search

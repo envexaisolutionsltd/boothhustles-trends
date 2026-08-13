@@ -23,6 +23,21 @@
   --warning: #fab219;
   --serious: #ec835a;
   --critical: #d03b3b;
+
+  /* Lewis Transport Services brand palette — heavy plant / hi-vis. */
+  --lts-graphite-950: #070a0e;
+  --lts-graphite-900: #10151c;
+  --lts-graphite-800: #1a212b;
+  --lts-graphite-700: #2b3441;
+  --lts-graphite-600: #45515f;
+  --lts-steel-500: #6d7a89;
+  --lts-steel-300: #aab5c2;
+  --lts-steel-200: #d5dce4;
+  --lts-steel-100: #e9edf2;
+  --lts-steel-50: #f5f7fa;
+  --lts-hivis: #ffb400;
+  --lts-hivis-strong: #e09b00;
+  --lts-hivis-soft: #fff4d6;
 }
 
 @theme inline {
@@ -49,6 +64,20 @@
   --color-serious: var(--serious);
   --color-critical: var(--critical);
 
+  --color-graphite-950: var(--lts-graphite-950);
+  --color-graphite-900: var(--lts-graphite-900);
+  --color-graphite-800: var(--lts-graphite-800);
+  --color-graphite-700: var(--lts-graphite-700);
+  --color-graphite-600: var(--lts-graphite-600);
+  --color-steel-500: var(--lts-steel-500);
+  --color-steel-300: var(--lts-steel-300);
+  --color-steel-200: var(--lts-steel-200);
+  --color-steel-100: var(--lts-steel-100);
+  --color-steel-50: var(--lts-steel-50);
+  --color-hivis: var(--lts-hivis);
+  --color-hivis-strong: var(--lts-hivis-strong);
+  --color-hivis-soft: var(--lts-hivis-soft);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -65,4 +94,62 @@ body {
 
 * {
   border-color: var(--border-hairline);
+}
+
+/* ---------------------------------------------------------------------------
+   Lewis Transport Services marketing site.
+   Scoped under .lts-site so the (dark) dashboard theme above is untouched.
+   --------------------------------------------------------------------------- */
+
+.lts-site {
+  color-scheme: light;
+  background: #ffffff;
+  color: var(--lts-graphite-900);
+}
+
+.lts-site * {
+  border-color: var(--lts-steel-200);
+}
+
+.lts-site :focus-visible {
+  outline: 3px solid var(--lts-hivis);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Hi-vis hazard banding — the site's one signature motif. */
+.lts-hazard {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--lts-hivis) 0 14px,
+    var(--lts-graphite-950) 14px 28px
+  );
+}
+
+/* Tighter banding for small elements, where the 28px repeat reads as a blob. */
+.lts-hazard-fine {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--lts-graphite-950) 0 4px,
+    transparent 4px 8px
+  );
+}
+
+/* Faint engineering grid used behind dark sections. */
+.lts-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lts-site *,
+  .lts-site *::before,
+  .lts-site *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

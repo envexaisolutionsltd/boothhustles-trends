@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -12,9 +12,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Per-area metadata lives in app/(site)/layout.tsx and app/dashboard/page.tsx;
+// this root only carries the fallbacks.
 export const metadata: Metadata = {
-  title: "Product Trends Dashboard",
-  description: "E-com product research powered by Google Trends via SerpApi.",
+  title: "Lewis Transport Services",
+  description:
+    "Heavy haulage, abnormal load movement and specialist transport across the UK and Europe.",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#070a0e",
 };
 
 export default function RootLayout({
@@ -24,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="en-GB"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
