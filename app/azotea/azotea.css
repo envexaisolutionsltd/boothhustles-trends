@@ -1,0 +1,816 @@
+/* ==========================================================================
+   AZOTEA — design system
+   Scoped to .az-root so it never leaks into the rest of the app.
+   ========================================================================== */
+
+.az-root {
+  /* Surfaces — warm, sun-baked dark */
+  --az-night: #0e0a09;
+  --az-night-2: #171010;
+  --az-night-3: #201615;
+  --az-bark: #2b1e1b;
+
+  /* Warm neutrals */
+  --az-bone: #fcf8f2;
+  --az-sand: #f2e6d6;
+  --az-sand-dim: #cbb9a4;
+  --az-mute: #a08d7d;
+
+  /* Accents */
+  --az-clay: #c4552e;
+  --az-ember: #e97d3c;
+  --az-gold: #e9b457;
+  --az-agave: #2f6f5b;
+  --az-lime: #9fc46b;
+
+  /* Type */
+  --az-display: var(--font-az-display), "Iowan Old Style", Georgia, serif;
+  --az-sans: var(--font-az-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Rhythm */
+  --az-gutter: clamp(1.25rem, 5vw, 4rem);
+  --az-max: 78rem;
+  --az-radius: 14px;
+
+  background-color: var(--az-night);
+  color: var(--az-sand);
+  font-family: var(--az-sans);
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+.az-root ::selection {
+  background: var(--az-ember);
+  color: var(--az-night);
+}
+
+/* --------------------------------------------------------------------------
+   Layout primitives
+   -------------------------------------------------------------------------- */
+
+.az-wrap {
+  width: 100%;
+  max-width: var(--az-max);
+  margin-inline: auto;
+  padding-inline: var(--az-gutter);
+}
+
+.az-wrap-wide {
+  max-width: 92rem;
+}
+
+.az-section {
+  padding-block: clamp(4rem, 9vw, 8.5rem);
+  position: relative;
+}
+
+.az-section-tight {
+  padding-block: clamp(3rem, 6vw, 5.5rem);
+}
+
+/* --------------------------------------------------------------------------
+   Typography
+   -------------------------------------------------------------------------- */
+
+.az-display {
+  font-family: var(--az-display);
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--az-bone);
+  font-variation-settings: "SOFT" 0, "WONK" 1, "opsz" 96;
+}
+
+.az-h1 {
+  font-size: clamp(2.9rem, 9.5vw, 7.5rem);
+}
+
+.az-h2 {
+  font-size: clamp(2.1rem, 5.2vw, 4rem);
+}
+
+.az-h3 {
+  font-size: clamp(1.45rem, 2.6vw, 2.1rem);
+  line-height: 1.05;
+}
+
+.az-eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--az-gold);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.az-eyebrow::before {
+  content: "";
+  width: 1.75rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.65;
+}
+
+.az-eyebrow-plain::before {
+  display: none;
+}
+
+.az-lead {
+  font-size: clamp(1.05rem, 1.55vw, 1.3rem);
+  line-height: 1.65;
+  color: var(--az-sand-dim);
+  max-width: 60ch;
+}
+
+.az-body {
+  line-height: 1.75;
+  color: var(--az-sand-dim);
+}
+
+.az-accent {
+  color: var(--az-ember);
+}
+
+/* Fluid, italic display accent used in headlines */
+.az-ital {
+  font-style: italic;
+  font-variation-settings: "SOFT" 40, "WONK" 1, "opsz" 96;
+  color: var(--az-gold);
+}
+
+/* --------------------------------------------------------------------------
+   Texture: fine grain + hacienda tile motif
+   -------------------------------------------------------------------------- */
+
+.az-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+}
+
+.az-tiles {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg fill='none' stroke='%23e9b457' stroke-width='1' stroke-opacity='0.22'%3E%3Cpath d='M24 0 48 24 24 48 0 24Z'/%3E%3Cpath d='M24 12 36 24 24 36 12 24Z'/%3E%3Ccircle cx='24' cy='24' r='3'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 48px 48px;
+}
+
+/* Hacienda arch */
+.az-arch {
+  border-radius: 999px 999px var(--az-radius) var(--az-radius);
+  overflow: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   Buttons
+   -------------------------------------------------------------------------- */
+
+.az-btn {
+  --btn-bg: var(--az-ember);
+  --btn-fg: #1a0d06;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.95rem 1.6rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.35s ease, background-color 0.3s ease, color 0.3s ease;
+  box-shadow: 0 10px 30px -14px rgba(233, 125, 60, 0.9);
+}
+
+.az-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px -16px rgba(233, 125, 60, 0.95);
+}
+
+.az-btn:active {
+  transform: translateY(0);
+}
+
+.az-btn:focus-visible,
+.az-root a:focus-visible,
+.az-root button:focus-visible,
+.az-root input:focus-visible,
+.az-root select:focus-visible,
+.az-root textarea:focus-visible,
+.az-root summary:focus-visible {
+  outline: 2px solid var(--az-gold);
+  outline-offset: 3px;
+}
+
+.az-btn-ghost {
+  --btn-bg: transparent;
+  --btn-fg: var(--az-bone);
+  border-color: rgba(242, 230, 214, 0.28);
+  box-shadow: none;
+}
+
+.az-btn-ghost:hover {
+  background: rgba(242, 230, 214, 0.08);
+  border-color: rgba(242, 230, 214, 0.55);
+  box-shadow: none;
+}
+
+.az-btn-gold {
+  --btn-bg: var(--az-gold);
+  --btn-fg: #241605;
+  box-shadow: 0 10px 30px -14px rgba(233, 180, 87, 0.9);
+}
+
+.az-btn-block {
+  width: 100%;
+}
+
+/* Text link with a sliding underline */
+.az-link {
+  position: relative;
+  color: var(--az-bone);
+  font-weight: 500;
+  text-decoration: none;
+  padding-bottom: 2px;
+}
+
+.az-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--az-ember);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.az-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* --------------------------------------------------------------------------
+   Surfaces
+   -------------------------------------------------------------------------- */
+
+.az-card {
+  position: relative;
+  background: linear-gradient(160deg, var(--az-night-2), var(--az-night));
+  border: 1px solid rgba(242, 230, 214, 0.1);
+  border-radius: var(--az-radius);
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  overflow: hidden;
+  transition: border-color 0.4s ease, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.az-card:hover {
+  border-color: rgba(233, 180, 87, 0.4);
+}
+
+.az-card-lift:hover {
+  transform: translateY(-4px);
+}
+
+.az-rule {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(233, 180, 87, 0.45),
+    transparent
+  );
+  border: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Sunset / skyline atmosphere behind the hero
+   -------------------------------------------------------------------------- */
+
+.az-sky {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 80% at 50% 108%, rgba(233, 125, 60, 0.55) 0%, rgba(196, 85, 46, 0.28) 32%, transparent 62%),
+    radial-gradient(90% 60% at 12% 8%, rgba(47, 111, 91, 0.32) 0%, transparent 60%),
+    linear-gradient(180deg, #0b0708 0%, #150d0c 45%, #2a1512 100%);
+}
+
+.az-sun {
+  position: absolute;
+  left: 50%;
+  bottom: -14vw;
+  width: min(46rem, 92vw);
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(233, 180, 87, 0.85) 0%,
+    rgba(233, 125, 60, 0.42) 42%,
+    transparent 68%
+  );
+  filter: blur(2px);
+  animation: az-sun-rise 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes az-sun-rise {
+  from {
+    transform: translate(-50%, 12%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+/* Repeating skyline silhouette drawn in CSS — no image request */
+.az-skyline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: clamp(70px, 12vw, 150px);
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  background-position: bottom center;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='150' viewBox='0 0 1200 150' preserveAspectRatio='none'%3E%3Cpath fill='%230b0708' d='M0 150V96h34V72h22v24h30V54h20v42h26V78h34v18h30V60h18v36h28V84h40v12h26V66h22v30h34V80h30v16h28V50h20v46h30V74h26v22h32V88h28v8h30V62h24v34h28V82h34v14h26V70h22v26h30V54h20v42h28V86h34v10h28V64h24v32h30V78h26v18h32V90h30v6h20v54z'/%3E%3C/svg%3E");
+  opacity: 0.95;
+}
+
+/* --------------------------------------------------------------------------
+   Scroll reveal
+   -------------------------------------------------------------------------- */
+
+.az-reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--az-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+.az-reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* --------------------------------------------------------------------------
+   Marquee
+   -------------------------------------------------------------------------- */
+
+.az-marquee {
+  display: flex;
+  overflow: hidden;
+  user-select: none;
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.az-marquee-track {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 3rem;
+  padding-right: 3rem;
+  animation: az-scroll 38s linear infinite;
+}
+
+@keyframes az-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Forms
+   -------------------------------------------------------------------------- */
+
+.az-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.az-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--az-sand-dim);
+}
+
+.az-input,
+.az-select,
+.az-textarea {
+  width: 100%;
+  background: rgba(11, 7, 8, 0.6);
+  border: 1px solid rgba(242, 230, 214, 0.16);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  color: var(--az-bone);
+  font-size: 0.98rem;
+  font-family: inherit;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.az-input::placeholder,
+.az-textarea::placeholder {
+  color: rgba(160, 141, 125, 0.75);
+}
+
+.az-input:hover,
+.az-select:hover,
+.az-textarea:hover {
+  border-color: rgba(242, 230, 214, 0.3);
+}
+
+.az-input:focus,
+.az-select:focus,
+.az-textarea:focus {
+  border-color: var(--az-gold);
+  background: rgba(11, 7, 8, 0.9);
+}
+
+.az-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23cbb9a4' d='M6 8 0 0h12z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+
+.az-textarea {
+  min-height: 8rem;
+  resize: vertical;
+}
+
+.az-error {
+  color: #ff9b7a;
+  font-size: 0.85rem;
+}
+
+/* --------------------------------------------------------------------------
+   Header
+   -------------------------------------------------------------------------- */
+
+.az-header {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  transition: background-color 0.4s ease, backdrop-filter 0.4s ease,
+    border-color 0.4s ease;
+  border-bottom: 1px solid transparent;
+}
+
+.az-header.is-stuck {
+  background: rgba(14, 10, 9, 0.82);
+  backdrop-filter: blur(14px) saturate(140%);
+  border-bottom-color: rgba(242, 230, 214, 0.12);
+}
+
+.az-wordmark {
+  font-family: var(--az-display);
+  font-weight: 600;
+  font-size: 1.4rem;
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+  color: var(--az-bone);
+  line-height: 1;
+}
+
+.az-navlink {
+  font-size: 0.86rem;
+  letter-spacing: 0.06em;
+  color: var(--az-sand-dim);
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.az-navlink:hover,
+.az-navlink[data-active="true"] {
+  color: var(--az-bone);
+}
+
+.az-navlink[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--az-ember);
+}
+
+/* Mobile drawer */
+.az-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: linear-gradient(170deg, #150d0c, #0b0708 60%);
+  display: flex;
+  flex-direction: column;
+  transform: translateY(-100%);
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.az-drawer.is-open {
+  transform: translateY(0);
+}
+
+.az-drawer-link {
+  font-family: var(--az-display);
+  font-size: clamp(1.8rem, 8vw, 2.6rem);
+  color: var(--az-bone);
+  padding-block: 0.35rem;
+  display: block;
+}
+
+/* --------------------------------------------------------------------------
+   Menu tabs
+   -------------------------------------------------------------------------- */
+
+.az-tab {
+  padding: 0.6rem 1.15rem;
+  border-radius: 999px;
+  border: 1px solid rgba(242, 230, 214, 0.16);
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--az-sand-dim);
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.az-tab:hover {
+  color: var(--az-bone);
+  border-color: rgba(242, 230, 214, 0.4);
+}
+
+.az-tab[aria-selected="true"] {
+  background: var(--az-bone);
+  border-color: var(--az-bone);
+  color: #1a0d06;
+}
+
+/* --------------------------------------------------------------------------
+   Accordion
+   -------------------------------------------------------------------------- */
+
+.az-acc {
+  border-bottom: 1px solid rgba(242, 230, 214, 0.12);
+}
+
+.az-acc summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  gap: 1.5rem;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-block: 1.35rem;
+  font-family: var(--az-display);
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  color: var(--az-bone);
+  transition: color 0.3s ease;
+}
+
+.az-acc summary::-webkit-details-marker {
+  display: none;
+}
+
+.az-acc summary:hover {
+  color: var(--az-gold);
+}
+
+.az-acc-icon {
+  flex: none;
+  width: 1.4rem;
+  height: 1.4rem;
+  position: relative;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.az-acc-icon::before,
+.az-acc-icon::after {
+  content: "";
+  position: absolute;
+  inset: 50% 0 auto 0;
+  height: 1.5px;
+  background: var(--az-ember);
+}
+
+.az-acc-icon::after {
+  transform: rotate(90deg);
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.az-acc[open] .az-acc-icon::after {
+  transform: rotate(0deg);
+}
+
+.az-acc-body {
+  padding-bottom: 1.5rem;
+  max-width: 68ch;
+  color: var(--az-sand-dim);
+  line-height: 1.75;
+  animation: az-fade-in 0.45s ease both;
+}
+
+@keyframes az-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Misc
+   -------------------------------------------------------------------------- */
+
+.az-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(233, 180, 87, 0.35);
+  background: rgba(233, 180, 87, 0.08);
+  color: var(--az-gold);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.az-numeral {
+  font-family: var(--az-display);
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  line-height: 1;
+  color: var(--az-gold);
+}
+
+.az-noise-band {
+  background:
+    linear-gradient(120deg, rgba(196, 85, 46, 0.9), rgba(233, 125, 60, 0.75) 45%, rgba(233, 180, 87, 0.85));
+  color: #1a0d06;
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .az-root *,
+  .az-root *::before,
+  .az-root *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .az-reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Hero fade — blends the sunset gradient into the section that follows
+   -------------------------------------------------------------------------- */
+
+.az-fade-bottom {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 45%;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--az-night) 92%);
+}
+
+.az-skyline-low {
+  height: clamp(48px, 7vw, 92px);
+}
+
+/* --------------------------------------------------------------------------
+   Light panel — a warm, sunlit break in an otherwise dark page
+   -------------------------------------------------------------------------- */
+
+.az-light {
+  background:
+    radial-gradient(120% 120% at 8% 0%, #fbf3e8 0%, #f0e2cf 55%, #e6d5be 100%);
+  color: #4a382f;
+  border-color: rgba(43, 30, 27, 0.16);
+}
+
+.az-light .az-display,
+.az-light strong {
+  color: #21140f;
+}
+
+.az-light .az-body,
+.az-light .az-lead {
+  color: #6a5348;
+}
+
+.az-light .az-eyebrow {
+  color: #a8462a;
+}
+
+.az-light .az-numeral {
+  color: #c4552e;
+}
+
+.az-light .az-ital {
+  color: #a8462a;
+}
+
+.az-light .az-chip {
+  border-color: rgba(168, 70, 42, 0.4);
+  background: rgba(168, 70, 42, 0.1);
+  color: #a8462a;
+}
+
+.az-light .az-btn-ghost {
+  --btn-fg: #21140f;
+  border-color: rgba(33, 20, 15, 0.3);
+}
+
+.az-light .az-btn-ghost:hover {
+  background: rgba(33, 20, 15, 0.07);
+  border-color: rgba(33, 20, 15, 0.55);
+}
+
+.az-light .az-btn:not(.az-btn-ghost) {
+  --btn-bg: #21140f;
+  --btn-fg: #fbf3e8;
+  box-shadow: 0 10px 30px -16px rgba(33, 20, 15, 0.8);
+}
+
+.az-light .az-tiles {
+  filter: invert(1) sepia(1) saturate(2) hue-rotate(340deg);
+}
+
+/* --------------------------------------------------------------------------
+   Mobile action bar
+   -------------------------------------------------------------------------- */
+
+.az-mobile-cta {
+  /* Owned here rather than via a utility class: this stylesheet loads after
+     Tailwind's utilities, so `sm:hidden` would lose the cascade tie. */
+  display: none;
+  position: fixed;
+  z-index: 55;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  gap: 0.6rem;
+  padding: 0.7rem clamp(0.9rem, 4vw, 1.25rem)
+    calc(0.7rem + env(safe-area-inset-bottom, 0px));
+  background: rgba(14, 10, 9, 0.9);
+  backdrop-filter: blur(14px) saturate(140%);
+  border-top: 1px solid rgba(242, 230, 214, 0.12);
+}
+
+.az-mobile-cta .az-btn {
+  padding-block: 0.8rem;
+}
+
+/* Keep the bar from covering the end of the page. */
+.az-root {
+  --az-cta-height: 4.6rem;
+}
+
+@media (max-width: 639px) {
+  .az-mobile-cta {
+    display: flex;
+  }
+
+  .az-root footer {
+    padding-bottom: var(--az-cta-height);
+  }
+}

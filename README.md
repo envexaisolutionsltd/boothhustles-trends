@@ -145,3 +145,76 @@ or estimated.
   Supabase env vars aren't set, so a misconfigured deployment shows a normal, visible
   error instead of a blank crashed page. `app/error.tsx` and `app/global-error.tsx`
   add the same safety net for any other unexpected render error.
+
+---
+
+# AZOTEA website (`/azotea`)
+
+A second, self-contained site lives in this repo: a rebuild of
+[azotea.co.uk](https://azotea.co.uk) — the Latin American rooftop restaurant and bar
+on the 12th floor of Sovereign Square, Leeds. It's mounted under `/azotea` so it
+sits alongside the trends dashboard (which keeps `/`) rather than replacing it. To
+serve it from the domain root instead, move `app/azotea/*` up to `app/` and update
+the `/azotea` prefixes in `lib/azotea.ts` (`nav`), `app/sitemap.ts` and the
+`alternates.canonical` values in each page.
+
+```
+├── app/azotea/
+│   ├── layout.tsx          # fonts, metadata, Restaurant + FAQPage JSON-LD, chrome
+│   ├── azotea.css          # design system, scoped to .az-root
+│   ├── page.tsx            # home
+│   ├── actions.ts          # "use server" enquiry handler for every form
+│   ├── menus/ book-a-table/ group-bookings/ story/ find/ faqs/ contact/ careers/
+│   └── not-found.tsx
+├── components/azotea/      # SiteHeader, SiteFooter, MobileCtaBar, PageHero,
+│                           # Reveal, MenuExplorer, FaqList, EnquiryForm
+├── lib/azotea.ts           # all business content in one place
+├── lib/enquiry.ts          # form types + initial state (kept out of the server module)
+├── app/sitemap.ts          # sitemap.xml
+└── app/robots.ts           # robots.txt
+```
+
+## Content
+
+`lib/azotea.ts` is the single source of truth for everything the site says about the
+business — address, phone, email, hours, menus, FAQs, group booking rules, careers
+benefits, press quotes. It's all taken from the existing azotea.co.uk site (and, for
+a couple of details, the venue's own listing on hyatt.com). Where a detail couldn't
+be verified it was left out rather than guessed at, which is why, for example, hours
+are stated as "12pm until late" rather than with invented closing times.
+
+## Design
+
+Dark, warm and typographic rather than photographic: no stock imagery, so every
+visual — sunset gradient, city skyline, hacienda arches, talavera-tile motif, film
+grain — is CSS or an inline SVG data URI. That keeps the pages fast (all nine
+prerender as static HTML) and avoids shipping photography the project doesn't have
+rights to. Drop real photography in later by replacing the gradient blocks in the
+"spaces" and chef sections with `next/image`.
+
+Fonts are Fraunces (display) and Inter (UI), self-hosted through `next/font`.
+Animations are subtle and all disabled under `prefers-reduced-motion`.
+
+## Enquiry forms
+
+Every form — table request, group enquiry, careers, general contact — posts to the
+single `submitEnquiry` Server Action, which validates server-side, drops honeypot
+submissions, and emails the venue through Resend when `RESEND_API_KEY` and
+`ENQUIRY_FROM_EMAIL` are set (see `.env.local.example`). Without that configuration
+it validates and logs the enquiry and says so plainly in the confirmation, pointing
+the visitor at the phone number instead — it never claims a message was delivered
+when it wasn't.
+
+The live site takes bookings through a third-party reservation system; the provider
+isn't identifiable from the public site, so this rebuild uses a request form plus
+phone and email. Swap in the real booking widget on `app/azotea/book-a-table/page.tsx`
+when those details are known.
+
+## SEO
+
+Per-page metadata and canonicals, Open Graph and Twitter tags, `Restaurant` and
+`FAQPage` JSON-LD (address, geo-relevant `areaServed`, amenities, `containedInPlace`
+for the Hyatt building), a generated `sitemap.xml` and `robots.txt`, and local-intent
+copy throughout (Sovereign Square, Leeds Railway Station, Q-Park, LS1 4DA). Set
+`NEXT_PUBLIC_SITE_URL` per environment so canonicals and the sitemap point at the
+right origin.
